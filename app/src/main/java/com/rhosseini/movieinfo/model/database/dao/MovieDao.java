@@ -17,5 +17,5 @@ public interface MovieDao {
     LiveData<List<Movie>> getAllMovies();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(List<Movie> movies);
+    void insertMovies(List<Movie> movies);
 }

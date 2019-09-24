@@ -20,11 +20,11 @@ public class MovieViewModel extends AndroidViewModel {
         super(application);
 
         repository = MovieRepository.getInstance(application);
-
-        allMovies = repository.getAllMovies();
     }
 
-    public LiveData<List<Movie>> getAllMovies() {
+    public LiveData<List<Movie>> getAllMovies(String searchText, Integer page) {
+        allMovies = repository.getAllMovies(searchText, page);
+
         return allMovies;
     }
 }

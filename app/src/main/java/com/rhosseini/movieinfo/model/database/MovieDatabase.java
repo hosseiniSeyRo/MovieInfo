@@ -25,7 +25,7 @@ public abstract class MovieDatabase extends RoomDatabase {
     public static synchronized MovieDatabase getINSTANCE(final Context context) {
         if (INSTANCE == null) {
             INSTANCE = Room.databaseBuilder(context.getApplicationContext(), MovieDatabase.class, DB_NAME)
-                    .addCallback(callback)
+//                    .addCallback(callback)
                     .build();
         }
 
@@ -55,7 +55,7 @@ public abstract class MovieDatabase extends RoomDatabase {
             movieList.add(new Movie("tt2084949", "Superman, Spiderman or Batman", "2011", "https://m.media-amazon.com/images/M/MV5BMjQ4MzcxNDU3N15BMl5BanBnXkFtZTgwOTE1MzMxNzE@._V1_SX300.jpg"));
             movieList.add(new Movie("tt0100669", "Spiderman", "1990", "123"));
 
-            movieDao.insert(movieList);
+            movieDao.insertMovies(movieList);
 
             return null;
         }

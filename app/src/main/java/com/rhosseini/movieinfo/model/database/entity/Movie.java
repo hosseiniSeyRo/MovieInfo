@@ -2,6 +2,7 @@ package com.rhosseini.movieinfo.model.database.entity;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "movie")
@@ -13,13 +14,16 @@ public class Movie {
     private String title;
     private String year;
     private String runTime;
-//    private String genre;
+    //    private String genre;
     private String director;
-//    private String writer;
+    //    private String writer;
 //    private String actors;
 //    private String language;
     private String country;
     private String poster;
+
+    public Movie() {
+    }
 
     public Movie(String imdbId, String title, String year, String poster) {
         this.imdbId = imdbId;

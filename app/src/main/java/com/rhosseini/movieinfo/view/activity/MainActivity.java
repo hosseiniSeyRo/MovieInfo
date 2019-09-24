@@ -32,11 +32,11 @@ public class MainActivity extends AppCompatActivity {
         configureRecyclerView();
 
         /* get All Movies */
-        getAllMovies();
+        getAllMovies("home", 1);
     }
 
-    private void getAllMovies() {
-        viewModel.getAllMovies().observe(this, this::consumeResponse);
+    private void getAllMovies(String searchText, Integer page) {
+        viewModel.getAllMovies(searchText, page).observe(this, this::consumeResponse);
     }
 
     private void consumeResponse(List<Movie> response) {
