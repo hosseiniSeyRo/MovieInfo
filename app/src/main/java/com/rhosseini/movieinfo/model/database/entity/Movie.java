@@ -1,8 +1,14 @@
-package com.rhosseini.movieinfo.model.database;
+package com.rhosseini.movieinfo.model.database.entity;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
+@Entity(tableName = "movie")
 public class Movie {
 
+    @PrimaryKey(autoGenerate = false)
+    @NonNull
     private String imdbId;
     private String title;
     private String year;

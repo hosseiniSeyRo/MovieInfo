@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.rhosseini.movieinfo.R;
-import com.rhosseini.movieinfo.model.database.Movie;
+import com.rhosseini.movieinfo.model.database.entity.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
