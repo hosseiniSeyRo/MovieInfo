@@ -1,8 +1,10 @@
-package com.rhosseini.movieinfo;
+package com.rhosseini.movieinfo.view.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+
+import com.rhosseini.movieinfo.R;
 
 public class MainActivity extends AppCompatActivity {
 
