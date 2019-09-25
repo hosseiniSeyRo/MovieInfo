@@ -10,7 +10,9 @@ import androidx.lifecycle.LiveData;
 
 import com.rhosseini.movieinfo.model.database.MovieDatabase;
 import com.rhosseini.movieinfo.model.database.dao.MovieDao;
+import com.rhosseini.movieinfo.model.database.dao.SearchHistoryDao;
 import com.rhosseini.movieinfo.model.database.entity.Movie;
+import com.rhosseini.movieinfo.model.database.entity.SearchHistory;
 import com.rhosseini.movieinfo.model.webServise.MovieApi;
 import com.rhosseini.movieinfo.model.webServise.RetrofitClient;
 import com.rhosseini.movieinfo.model.webServise.responseModel.MovieSearchResponse.MovieInSearch;
@@ -30,6 +32,7 @@ public class MovieRepository {
     private Context mContext;
     private static MovieRepository movieRepository;
     private MovieDao movieDao;
+    private SearchHistoryDao searchHistoryDao;
     private LiveData<List<Movie>> allMovies;
     private MovieApi movieApi;
 
@@ -45,12 +48,20 @@ public class MovieRepository {
     private MovieRepository(Application app) {
         this.mContext = app;
         this.movieApi = RetrofitClient.createService(MovieApi.class);
-        this.movieDao = MovieDatabase.getINSTANCE(app).movieDao();
+
+        MovieDatabase database = MovieDatabase.getINSTANCE(app);
+        this.movieDao = database.movieDao();
+        this.searchHistoryDao = database.searchHistoryDao();
+    }
+
+    /* get all search histories */
+    public LiveData<List<SearchHistory>> getAllSearchHistories() {
+        return searchHistoryDao.getAllSearchHistories();
     }
 
     /* get all Movies */
     public LiveData<List<Movie>> getAllMovies(String searchText, Integer page) {
-        allMovies = movieDao.getAllMovies();
+        allMovies = movieDao.getMoviesBySearch(searchText, page);
 
         // if internet is connected fetch data from server
         if (Method.isInternetConnected(mContext)) {

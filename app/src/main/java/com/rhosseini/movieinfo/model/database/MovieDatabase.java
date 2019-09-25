@@ -10,7 +10,9 @@ import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.rhosseini.movieinfo.model.database.dao.MovieDao;
+import com.rhosseini.movieinfo.model.database.dao.SearchHistoryDao;
 import com.rhosseini.movieinfo.model.database.entity.Movie;
+import com.rhosseini.movieinfo.model.database.entity.SearchHistory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +23,12 @@ public abstract class MovieDatabase extends RoomDatabase {
     private static MovieDatabase INSTANCE;
     private static final String DB_NAME = "MovieDb";
     public abstract MovieDao movieDao();
+    public abstract SearchHistoryDao searchHistoryDao();
 
     public static synchronized MovieDatabase getINSTANCE(final Context context) {
         if (INSTANCE == null) {
             INSTANCE = Room.databaseBuilder(context.getApplicationContext(), MovieDatabase.class, DB_NAME)
-//                    .addCallback(callback)
+                    .addCallback(callback)
                     .build();
         }
 
@@ -41,21 +44,25 @@ public abstract class MovieDatabase extends RoomDatabase {
     };
 
     private static class PopulateDbAsyncTask extends AsyncTask<Void, Void, Void> {
-        private MovieDao movieDao;
+        private SearchHistoryDao searchHistoryDao;
 
         private PopulateDbAsyncTask(MovieDatabase dbInstance) {
-            movieDao = dbInstance.movieDao();
+            searchHistoryDao = dbInstance.searchHistoryDao();
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            List<Movie> movieList = new ArrayList<>();
+            List<SearchHistory> searchHistoryList = new ArrayList<>();
 
-            movieList.add(new Movie("tt2705436", "Italian Spiderman", "2007", "https://m.media-amazon.com/images/M/MV5BYjFhN2RjZTctMzA2Ni00NzE2LWJmYjMtNDAyYTllOTkyMmY3XkEyXkFqcGdeQXVyNTA0OTU0OTQ@._V1_SX300.jpg"));
-            movieList.add(new Movie("tt2084949", "Superman, Spiderman or Batman", "2011", "https://m.media-amazon.com/images/M/MV5BMjQ4MzcxNDU3N15BMl5BanBnXkFtZTgwOTE1MzMxNzE@._V1_SX300.jpg"));
-            movieList.add(new Movie("tt0100669", "Spiderman", "1990", "123"));
+            searchHistoryList.add(new SearchHistory("home"));
+            searchHistoryList.add(new SearchHistory("france"));
+            searchHistoryList.add(new SearchHistory("iran"));
+            searchHistoryList.add(new SearchHistory("ireland"));
+            searchHistoryList.add(new SearchHistory("iraq"));
+            searchHistoryList.add(new SearchHistory("war"));
+            searchHistoryList.add(new SearchHistory("star"));
 
-            movieDao.insertMovies(movieList);
+            searchHistoryDao.insert(searchHistoryList);
 
             return null;
         }

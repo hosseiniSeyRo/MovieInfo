@@ -17,19 +17,21 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.rhosseini.movieinfo.R;
-import com.rhosseini.movieinfo.model.database.entity.Movie;
+import com.rhosseini.movieinfo.model.database.entity.SearchHistory;
 import com.rhosseini.movieinfo.view.adapter.MovieRecyclerViewAdapter;
 import com.rhosseini.movieinfo.viewModel.MovieViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     RecyclerView recyclerView;
     MovieRecyclerViewAdapter adapter;
     MovieViewModel viewModel;
     AutoCompleteTextView searchView;
     ImageView searchIcon, searchClearIcon;
+    ArrayAdapter<String> searchSuggestionAdapter;
     View emptyLayout, loadingLayout;
 
     @Override
@@ -43,11 +45,17 @@ public class MainActivity extends AppCompatActivity {
         /* bind views*/
         bindViews();
 
+        /* Clicks handler */
+        clickHandler();
+
+        /* configure Search */
+        configureSearch();
+
         /* configure RecyclerView */
         configureRecyclerView();
 
-        /* get All Movies */
-        getAllMovies("home", 1);
+//        /* get All Movies */
+//        getAllMovies("home", 1);
     }
 
     /* bind views*/
@@ -61,39 +69,62 @@ public class MainActivity extends AppCompatActivity {
         // hide searchClearIcon
         searchClearIcon.setVisibility(View.GONE);
 
-        // hide emptyLayout and loadingLayout
-        emptyLayout.setVisibility(View.GONE);
+        // show emptyLayout and hide loadingLayout
+        emptyLayout.setVisibility(View.VISIBLE);
         loadingLayout.setVisibility(View.GONE);
+    }
 
-        // handle searchClearIcon click listener
-        searchClearIcon.setOnClickListener(v -> searchView.setText(null));
+    /* Click handler */
+    private void clickHandler() {
+        searchClearIcon.setOnClickListener(this);
+    }
 
-        // add textWatcher to searchView
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.searchClearIcon:
+                searchView.setText(null);
+
+                break;
+            default:
+                break;
+        }
+    }
+
+    /* configure Search */
+    private void configureSearch() {
+        // add text change listener for searchView
         searchView.addTextChangedListener(searchTextWatcher);
+
+
+        // set search Suggestion Adapter
+        searchSuggestionAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line);
+        searchView.setAdapter(searchSuggestionAdapter);
+        searchView.setThreshold(2);
+        searchView.setOnItemClickListener((parent, view, position, id) -> {
+            Toast.makeText(this, "selected: "+searchSuggestionAdapter.getItem(position), Toast.LENGTH_SHORT).show();
+//            getAllMovies(searchSuggestionAdapter.getItem(position), 1);
+        });
+
+
+        // get suggestion data from db
+        getAllSearchHistories();
+
 
         // handle keyboard search btn click
         searchView.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                // get search keyword
                 String searchKeyword = v.getText().toString().trim();
-                Toast.makeText(MainActivity.this, "" + searchKeyword, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "selected: "+searchKeyword, Toast.LENGTH_SHORT).show();
+
+//                // get data for search keyword
+//                getAllMovies(searchKeyword, 1);
+
                 return true;
             }
             return false;
         });
-
-        // set search suggestion adapter
-        final String[] COUNTRIES = new String[]{
-                "Belgium", "France", "Italy", "Germany", "Spain", "Iran", "Ireland"
-        };
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_dropdown_item_1line, COUNTRIES);
-        searchView.setAdapter(adapter);
-        searchView.setThreshold(2);
-        searchView.setOnItemClickListener((parent, view, position, id) -> {
-            Toast.makeText(this, "selected: " + adapter.getItem(position), Toast.LENGTH_SHORT).show();
-        });
-
     }
 
     /* search text watcher*/
@@ -117,14 +148,25 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    /* get Movies */
-    private void getAllMovies(String searchText, Integer page) {
-        viewModel.getAllMovies(searchText, page).observe(this, this::consumeResponse);
+    /* get all search histories from db */
+    private void getAllSearchHistories() {
+        final List<String> suggestions = new ArrayList<>();
+
+        viewModel.getAllSearchHistories().observe(this, searchHistories -> {
+            for (SearchHistory searchHistory : searchHistories) {
+                suggestions.add(searchHistory.getTitle());
+            }
+            searchSuggestionAdapter.clear();
+            searchSuggestionAdapter.addAll(suggestions);
+            searchSuggestionAdapter.notifyDataSetChanged();
+        });
     }
 
-    /* consume Response */
-    private void consumeResponse(List<Movie> response) {
-        adapter.setList(response);
+    /* get Movies */
+    private void getAllMovies(String searchText, Integer page) {
+        viewModel.getAllMovies(searchText, page).observe(this, movies -> {
+            adapter.setList(movies);
+        });
     }
 
     /* configure RecyclerView */
