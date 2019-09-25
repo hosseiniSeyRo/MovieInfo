@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
@@ -23,6 +25,7 @@ import com.rhosseini.movieinfo.viewModel.MovieViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -33,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView searchIcon, searchClearIcon;
     ArrayAdapter<String> searchSuggestionAdapter;
     View emptyLayout, loadingLayout;
+    final List<String> suggestions = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         configureRecyclerView();
 
 //        /* get All Movies */
-//        getAllMovies("home", 1);
+//        getMoviesByTitle("home", 1);
     }
 
     /* bind views*/
@@ -102,8 +106,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         searchView.setAdapter(searchSuggestionAdapter);
         searchView.setThreshold(2);
         searchView.setOnItemClickListener((parent, view, position, id) -> {
-            Toast.makeText(this, "selected: "+searchSuggestionAdapter.getItem(position), Toast.LENGTH_SHORT).show();
-//            getAllMovies(searchSuggestionAdapter.getItem(position), 1);
+            // get data for search keyword
+            getMoviesByTitle(searchSuggestionAdapter.getItem(position), 1);
         });
 
 
@@ -114,15 +118,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // handle keyboard search btn click
         searchView.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                // disappear suggestions box
+                searchView.dismissDropDown();
+
+                // close keyboard
+                closeKeyboard();
+
                 // get search keyword
                 String searchKeyword = v.getText().toString().trim();
-                Toast.makeText(this, "selected: "+searchKeyword, Toast.LENGTH_SHORT).show();
 
                 // save search keyword in db
                 saveSearchKeywordInDb(searchKeyword);
 
-//                // get data for search keyword
-//                getAllMovies(searchKeyword, 1);
+                // get data for search keyword
+                getMoviesByTitle(searchKeyword, 1);
 
                 return true;
             }
@@ -153,15 +162,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /* get all search histories from db */
     private void getAllSearchHistories() {
-        final List<String> suggestions = new ArrayList<>();
-
-        viewModel.getAllSearchHistories().observe(this, searchHistories -> {
-            for (SearchHistory searchHistory : searchHistories) {
+        viewModel.getAllSearchHistories().observe(this, searchHistoryList -> {
+            suggestions.clear();
+            for (SearchHistory searchHistory : searchHistoryList) {
                 suggestions.add(searchHistory.getTitle());
             }
             searchSuggestionAdapter.clear();
             searchSuggestionAdapter.addAll(suggestions);
-            searchSuggestionAdapter.notifyDataSetChanged();
         });
     }
 
@@ -171,11 +178,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         viewModel.insertSearchHistory(searchHistory);
     }
 
+    /* close keyboard */
+    private void closeKeyboard() {
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = this.getCurrentFocus();
+
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(this);
+        }
+
+        InputMethodManager imm = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        Objects.requireNonNull(imm).hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
     /* get Movies */
-    private void getAllMovies(String searchText, Integer page) {
-        viewModel.getAllMovies(searchText, page).observe(this, movies -> {
-            adapter.setList(movies);
-        });
+    private void getMoviesByTitle(String searchText, Integer page) {
+        viewModel.getMoviesByTitle(searchText, page).observe(this, movies -> adapter.setList(movies));
     }
 
     /* configure RecyclerView */

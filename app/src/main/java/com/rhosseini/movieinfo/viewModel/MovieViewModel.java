@@ -15,8 +15,6 @@ import java.util.List;
 public class MovieViewModel extends AndroidViewModel {
 
     private MovieRepository repository;
-    private LiveData<List<Movie>> allMovies;
-    private LiveData<List<SearchHistory>> allSearchHistories;
 
     public MovieViewModel(@NonNull Application application) {
         super(application);
@@ -25,18 +23,14 @@ public class MovieViewModel extends AndroidViewModel {
     }
 
     public LiveData<List<SearchHistory>> getAllSearchHistories() {
-        allSearchHistories = repository.getAllSearchHistories();
-
-        return allSearchHistories;
+        return repository.getAllSearchHistories();
     }
 
     public void insertSearchHistory(SearchHistory searchHistory) {
         repository.insertSearchHistory(searchHistory);
     }
 
-    public LiveData<List<Movie>> getAllMovies(String searchText, Integer page) {
-        allMovies = repository.getAllMovies(searchText, page);
-
-        return allMovies;
+    public LiveData<List<Movie>> getMoviesByTitle(String searchText, Integer page) {
+        return repository.getMoviesByTitle(searchText, page);
     }
 }

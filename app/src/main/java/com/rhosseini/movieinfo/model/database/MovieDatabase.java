@@ -17,7 +17,7 @@ import com.rhosseini.movieinfo.model.database.entity.SearchHistory;
 import java.util.ArrayList;
 import java.util.List;
 
-@Database(entities = {Movie.class, SearchHistory.class}, version = 1, exportSchema = false)
+@Database(entities = {Movie.class, SearchHistory.class}, version = 2, exportSchema = false)
 public abstract class MovieDatabase extends RoomDatabase {
 
     private static MovieDatabase INSTANCE;
@@ -28,6 +28,7 @@ public abstract class MovieDatabase extends RoomDatabase {
     public static synchronized MovieDatabase getINSTANCE(final Context context) {
         if (INSTANCE == null) {
             INSTANCE = Room.databaseBuilder(context.getApplicationContext(), MovieDatabase.class, DB_NAME)
+                    .fallbackToDestructiveMigration()
 //                    .addCallback(callback)
                     .build();
         }

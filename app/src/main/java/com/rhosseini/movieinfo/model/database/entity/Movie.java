@@ -25,6 +25,7 @@ public class Movie {
     public Movie() {
     }
 
+    @Ignore
     public Movie(String imdbId, String title, String year, String poster) {
         this.imdbId = imdbId;
         this.title = title;

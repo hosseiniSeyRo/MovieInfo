@@ -34,6 +34,7 @@ public class MovieRepository {
     private MovieDao movieDao;
     private SearchHistoryDao searchHistoryDao;
     private LiveData<List<Movie>> allMovies;
+    private LiveData<List<SearchHistory>> allSearchHistories;
     private MovieApi movieApi;
 
 
@@ -52,11 +53,13 @@ public class MovieRepository {
         MovieDatabase database = MovieDatabase.getINSTANCE(app);
         this.movieDao = database.movieDao();
         this.searchHistoryDao = database.searchHistoryDao();
+
+        this.allSearchHistories = searchHistoryDao.getAllSearchHistories();
     }
 
     /* get all search histories */
     public LiveData<List<SearchHistory>> getAllSearchHistories() {
-        return searchHistoryDao.getAllSearchHistories();
+        return allSearchHistories;
     }
 
     /* insert search history */
@@ -66,12 +69,13 @@ public class MovieRepository {
     }
 
     /* get all Movies */
-    public LiveData<List<Movie>> getAllMovies(String searchText, Integer page) {
-        allMovies = movieDao.getMoviesBySearch(searchText, page);
+    public LiveData<List<Movie>> getMoviesByTitle(String title, Integer page) {
+
+        allMovies = movieDao.getMoviesByTitle(title, page);
 
         // if internet is connected fetch data from server
         if (Method.isInternetConnected(mContext)) {
-            movieApi.getMoviesBySearch(searchText, page).enqueue(new Callback<MovieSearchResponse>() {
+            movieApi.getMoviesBySearch(title, page).enqueue(new Callback<MovieSearchResponse>() {
                 @Override
                 public void onResponse(Call<MovieSearchResponse> call, Response<MovieSearchResponse> response) {
                     if (response.isSuccessful()) {
