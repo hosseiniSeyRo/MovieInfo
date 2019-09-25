@@ -7,14 +7,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.rhosseini.movieinfo.R;
@@ -29,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     MovieRecyclerViewAdapter adapter;
     MovieViewModel viewModel;
-    TextView searchView;
+    AutoCompleteTextView searchView;
     ImageView searchIcon, searchClearIcon;
     View emptyLayout, loadingLayout;
 
@@ -72,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         // add textWatcher to searchView
         searchView.addTextChangedListener(searchTextWatcher);
 
-        //  handle keyboard search btn click
+        // handle keyboard search btn click
         searchView.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 String searchKeyword = v.getText().toString().trim();
@@ -80,6 +79,19 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             return false;
+        });
+
+        // set search suggestion adapter
+        final String[] COUNTRIES = new String[]{
+                "Belgium", "France", "Italy", "Germany", "Spain", "Iran", "Ireland"
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, COUNTRIES);
+        searchView.setAdapter(adapter);
+        searchView.setThreshold(2);
+        searchView.setOnItemClickListener((parent, view, position, id) -> {
+            Toast.makeText(this, "selected: " + adapter.getItem(position), Toast.LENGTH_SHORT).show();
         });
 
     }
