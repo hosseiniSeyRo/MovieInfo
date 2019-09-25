@@ -118,6 +118,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String searchKeyword = v.getText().toString().trim();
                 Toast.makeText(this, "selected: "+searchKeyword, Toast.LENGTH_SHORT).show();
 
+                // save search keyword in db
+                saveSearchKeywordInDb(searchKeyword);
+
 //                // get data for search keyword
 //                getAllMovies(searchKeyword, 1);
 
@@ -160,6 +163,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             searchSuggestionAdapter.addAll(suggestions);
             searchSuggestionAdapter.notifyDataSetChanged();
         });
+    }
+
+    /* save search keyword in db */
+    private void saveSearchKeywordInDb(String searchKeyword) {
+        SearchHistory searchHistory = new SearchHistory(searchKeyword, System.currentTimeMillis());
+        viewModel.insertSearchHistory(searchHistory);
     }
 
     /* get Movies */

@@ -59,6 +59,12 @@ public class MovieRepository {
         return searchHistoryDao.getAllSearchHistories();
     }
 
+    /* insert search history */
+    public void insertSearchHistory(SearchHistory searchHistory) {
+        // database tasks should be done asynchronously
+        new InsertSearchHistoryAsyncTask(searchHistoryDao).execute(searchHistory);
+    }
+
     /* get all Movies */
     public LiveData<List<Movie>> getAllMovies(String searchText, Integer page) {
         allMovies = movieDao.getMoviesBySearch(searchText, page);
@@ -127,6 +133,22 @@ public class MovieRepository {
         @Override
         protected Void doInBackground(ArrayList<Movie>... arrayLists) {
             dao.insertMovies(arrayLists[0]);
+            return null;
+        }
+    }
+
+    // insert searchHistory asyncTask
+    private class InsertSearchHistoryAsyncTask extends AsyncTask<SearchHistory, Void, Void> {
+
+        private SearchHistoryDao dao;
+
+        private InsertSearchHistoryAsyncTask(SearchHistoryDao dao) {
+            this.dao = dao;
+        }
+
+        @Override
+        protected Void doInBackground(SearchHistory... searchHistories) {
+            dao.insert(searchHistories[0]);
             return null;
         }
     }

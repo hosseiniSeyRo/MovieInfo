@@ -30,6 +30,10 @@ public class MovieViewModel extends AndroidViewModel {
         return allSearchHistories;
     }
 
+    public void insertSearchHistory(SearchHistory searchHistory) {
+        repository.insertSearchHistory(searchHistory);
+    }
+
     public LiveData<List<Movie>> getAllMovies(String searchText, Integer page) {
         allMovies = repository.getAllMovies(searchText, page);
 

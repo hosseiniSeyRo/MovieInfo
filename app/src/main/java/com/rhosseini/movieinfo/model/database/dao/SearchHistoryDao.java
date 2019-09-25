@@ -14,6 +14,9 @@ import java.util.List;
 public interface SearchHistoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insert(SearchHistory searchHistories);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(List<SearchHistory> searchHistories);
 
     @Query("SELECT * FROM search_history ORDER BY title")

@@ -2,6 +2,7 @@ package com.rhosseini.movieinfo.model.database.entity;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "search_history")
@@ -10,10 +11,15 @@ public class SearchHistory {
     @NonNull
     private String title;
     private Long time;
-    private int Count;
 
     public SearchHistory(@NonNull String title) {
         this.title = title;
+    }
+
+    @Ignore
+    public SearchHistory(@NonNull String title, Long time) {
+        this.title = title;
+        this.time = time;
     }
 
     public String getTitle() {
@@ -30,13 +36,5 @@ public class SearchHistory {
 
     public void setTime(Long time) {
         this.time = time;
-    }
-
-    public int getCount() {
-        return Count;
-    }
-
-    public void setCount(int count) {
-        Count = count;
     }
 }
