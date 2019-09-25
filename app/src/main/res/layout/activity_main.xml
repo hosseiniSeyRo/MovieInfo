@@ -4,12 +4,78 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context=".view.activity.MainActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <!-- SearchView Container -->
+    <RelativeLayout
+        android:id="@+id/searchContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:listitem="@layout/list_item"/>
+        android:layout_height="56dp"
+        android:layout_gravity="center_horizontal">
+
+        <EditText
+            android:id="@+id/searchView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/search_view_background"
+            android:hint="Search in movie title"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingLeft="48dp"
+            android:paddingRight="48dp"
+            android:singleLine="true"
+            android:textColor="@android:color/black" />
+
+        <ImageView
+            android:id="@+id/searchIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="16dp"
+            android:tint="@color/searchViewIconTint"
+            app:srcCompat="@drawable/ic_search" />
+
+        <ImageView
+            android:id="@+id/searchClearIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="16dp"
+            android:tint="@color/searchViewIconTint"
+            app:srcCompat="@drawable/ic_clear" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/searchContainer"
+        android:layout_marginTop="16dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/list_item" />
+
+        <TextView
+            android:id="@+id/emptyLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="No results found"
+            android:textAppearance="?android:textAppearanceMedium" />
+
+        <ProgressBar
+            android:id="@+id/loadingLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" />
+
+    </RelativeLayout>
 
 </RelativeLayout>
