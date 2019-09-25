@@ -22,9 +22,12 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
 
     Context mContext;
     List<Movie> movieList = new ArrayList<>();
+    private OnItemClicked listener;
 
-    public MovieRecyclerViewAdapter(Context mContext) {
+
+    public MovieRecyclerViewAdapter(Context mContext, OnItemClicked listener) {
         this.mContext = mContext;
+        this.listener = listener;
     }
 
     @NonNull
@@ -47,6 +50,10 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
                 .into(holder.poster);
         holder.title.setText(currentMovie.getTitle());
         holder.year.setText(currentMovie.getYear());
+
+        holder.container.setOnClickListener(v -> {
+            listener.onItemClick(position);
+        });
     }
 
     @Override
@@ -70,6 +77,7 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
         ImageView poster;
         TextView title;
         TextView year;
+        View container;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -77,6 +85,11 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
             poster = itemView.findViewById(R.id.poster);
             title = itemView.findViewById(R.id.title);
             year = itemView.findViewById(R.id.year);
+            container = itemView.findViewById(R.id.container);
         }
+    }
+
+    public interface OnItemClicked {
+        void onItemClick(int position);
     }
 }

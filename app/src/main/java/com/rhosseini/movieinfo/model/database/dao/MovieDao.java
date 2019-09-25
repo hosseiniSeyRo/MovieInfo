@@ -21,4 +21,7 @@ public interface MovieDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertMovies(List<Movie> movies);
+
+    @Query("SELECT * FROM movie WHERE imdbId = :imdbId LIMIT 1")
+    LiveData<Movie> getMovieById(String imdbId);
 }

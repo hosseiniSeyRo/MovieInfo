@@ -125,6 +125,11 @@ public class MovieRepository {
         new InsertMoviesAsyncTask(movieDao).execute((ArrayList<Movie>) movieList);
     }
 
+    public LiveData<Movie> getMovieById(String imdbId) {
+        //TODO if movie detail exist in db fetch from db else fetch from server and save in db
+        return movieDao.getMovieById(imdbId);
+    }
+
     // insert movie asyncTask
     private class InsertMoviesAsyncTask extends AsyncTask<ArrayList<Movie>, Void, Void> {
 

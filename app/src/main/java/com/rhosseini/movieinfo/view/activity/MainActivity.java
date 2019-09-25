@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -228,7 +229,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recyclerView.setHasFixedSize(true);
 
         // set recyclerView adapter
-        adapter = new MovieRecyclerViewAdapter(this);
+        adapter = new MovieRecyclerViewAdapter(this, position -> {
+            Intent intent = new Intent(this, DetailActivity.class);
+            intent.putExtra("imdbId", adapter.getItem(position).getImdbId());
+            startActivity(intent);
+        });
         recyclerView.setAdapter(adapter);
     }
 }
