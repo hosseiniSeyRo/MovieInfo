@@ -71,7 +71,7 @@ public class MovieRepository {
     /* get all Movies */
     public LiveData<List<Movie>> getMoviesByTitle(String title, Integer page) {
 
-        allMovies = movieDao.getMoviesByTitle(title, page);
+        allMovies = movieDao.getMoviesByTitle(title);
 
         // if internet is connected fetch data from server
         if (Method.isInternetConnected(mContext)) {

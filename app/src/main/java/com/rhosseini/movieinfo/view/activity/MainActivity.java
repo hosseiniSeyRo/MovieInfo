@@ -58,8 +58,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         /* configure RecyclerView */
         configureRecyclerView();
 
-//        /* get All Movies */
-//        getMoviesByTitle("home", 1);
+        /* get All Movies */
+        getMoviesByTitle("tehran", 1);
     }
 
     /* bind views*/

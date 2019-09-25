@@ -16,8 +16,8 @@ public interface MovieDao {
     @Query("SELECT * FROM movie")
     LiveData<List<Movie>> getAllMovies();
 
-    @Query("SELECT * FROM movie WHERE title LIKE  '%' || :title || '%' LIMIT :size")
-    LiveData<List<Movie>> getMoviesByTitle(String title, Integer size);
+    @Query("SELECT * FROM movie WHERE title LIKE  '%' || :title || '%'")
+    LiveData<List<Movie>> getMoviesByTitle(String title);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertMovies(List<Movie> movies);
