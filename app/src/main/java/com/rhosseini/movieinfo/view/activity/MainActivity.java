@@ -67,15 +67,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         searchView = findViewById(R.id.searchView);
         searchIcon = findViewById(R.id.searchIcon);
         searchClearIcon = findViewById(R.id.searchClearIcon);
+        recyclerView = findViewById(R.id.recyclerView);
         emptyLayout = findViewById(R.id.emptyLayout);
         loadingLayout = findViewById(R.id.loadingLayout);
 
         // hide searchClearIcon
         searchClearIcon.setVisibility(View.GONE);
 
-        // show emptyLayout and hide loadingLayout
+        // show emptyLayout and hide loadingLayout and recyclerView
         emptyLayout.setVisibility(View.VISIBLE);
         loadingLayout.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
     }
 
     /* Click handler */
@@ -88,6 +90,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.searchClearIcon:
                 searchView.setText(null);
+                searchView.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(searchView, InputMethodManager.SHOW_IMPLICIT);
 
                 break;
             default:
@@ -194,13 +199,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /* get Movies */
     private void getMoviesByTitle(String searchText, Integer page) {
-        viewModel.getMoviesByTitle(searchText, page).observe(this, movies -> adapter.setList(movies));
+        // show loading layout and hide recyclerView and emptyLayout
+        emptyLayout.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
+        loadingLayout.setVisibility(View.VISIBLE);
+
+        // get data
+        viewModel.getMoviesByTitle(searchText, page).observe(this, movies -> {
+            adapter.setList(movies);
+
+            // if recyclerView is empty show emptyLayout
+            if (adapter.getItemCount() == 0) {
+                emptyLayout.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+                loadingLayout.setVisibility(View.GONE);
+            } else {
+                emptyLayout.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+                loadingLayout.setVisibility(View.GONE);
+            }
+        });
     }
 
     /* configure RecyclerView */
     private void configureRecyclerView() {
         // set recyclerView setup
-        recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
 
