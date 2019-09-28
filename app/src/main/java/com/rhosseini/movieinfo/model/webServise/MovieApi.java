@@ -12,7 +12,7 @@ public interface MovieApi {
     @GET("?apikey=40970e78")
     Call<MovieSearchResponse> getMoviesByTitle(
             @Query("s") String title,
-            @Query("p") Integer page);
+            @Query("page") Integer page);
 
     @GET("?apikey=40970e78")
     Call<MovieResponse> getMoviesById(

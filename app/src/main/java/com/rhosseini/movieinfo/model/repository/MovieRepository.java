@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.rhosseini.movieinfo.model.database.MovieDatabase;
 import com.rhosseini.movieinfo.model.database.dao.MovieDao;
@@ -13,6 +14,7 @@ import com.rhosseini.movieinfo.model.webServise.MovieApi;
 import com.rhosseini.movieinfo.model.webServise.RetrofitClient;
 import com.rhosseini.movieinfo.model.webServise.responseModel.MovieSearchResponse.MovieInSearch;
 import com.rhosseini.movieinfo.model.webServise.responseModel.MovieSearchResponse;
+import com.rhosseini.movieinfo.model.webServise.responseModel.ResponseWrapper;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -37,18 +39,20 @@ public class MovieRepository {
         return movieRepository;
     }
 
-
     private MovieRepository(Application app) {
         this.movieApi = RetrofitClient.createService(MovieApi.class);
         this.movieDao = MovieDatabase.getINSTANCE(app).movieDao();
     }
 
     /* get all Movies */
-    public LiveData<List<Movie>> getMoviesByTitle(String title, Integer page) {
-
+    public LiveData<ResponseWrapper<List<Movie>>> getMoviesByTitle(String title, Integer page) {
         allMovies = movieDao.getMoviesByTitle(title);
 
+        MutableLiveData<ResponseWrapper<List<Movie>>> responseWrapper = new MutableLiveData<>();
+        responseWrapper.setValue(new ResponseWrapper(ResponseWrapper.Status.CREATE, allMovies, null ,null));
+
         //TODO Loading status
+        responseWrapper.setValue(ResponseWrapper.loading());
 
         // fetch data from server
         movieApi.getMoviesByTitle(title, page).enqueue(new Callback<MovieSearchResponse>() {
@@ -56,11 +60,13 @@ public class MovieRepository {
             public void onResponse(Call<MovieSearchResponse> call, Response<MovieSearchResponse> response) {
                 if (response.isSuccessful()) {
                     //TODO Success status
+                    responseWrapper.setValue(ResponseWrapper.success(convertResponseMovieToDBMovie(response.body().getMovieList())));
 
                     // save data in db
                     saveMoviesInDb(response);
                 } else {
                     //TODO ERROR status
+                    responseWrapper.setValue(ResponseWrapper.error(response.code(), response.message()));
 
                     Log.e(TAG, response.code() + " " + response.message());
                 }
@@ -69,12 +75,13 @@ public class MovieRepository {
             @Override
             public void onFailure(Call<MovieSearchResponse> call, Throwable t) {
                 //TODO ERROR status
+                responseWrapper.setValue(ResponseWrapper.error(null, t.getMessage()));
 
                 Log.e(TAG, t.getMessage() != null ? t.getMessage() : "Something went wrong");
             }
         });
 
-        return allMovies;
+        return responseWrapper;
     }
 
     // save server response in database

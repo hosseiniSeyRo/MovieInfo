@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -16,6 +17,7 @@ import com.rhosseini.movieinfo.viewModel.MovieViewModel;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private final String TAG = "rHosseini -> " + this.getClass().getSimpleName();
     RecyclerView recyclerView;
     MovieRecyclerViewAdapter adapter;
     MovieViewModel viewModel;
@@ -94,26 +96,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /* get Movies */
     private void getMoviesByTitle(String searchText, Integer page) {
-        // show loading layout and hide recyclerView and emptyLayout
-        emptyLayout.setVisibility(View.GONE);
-        recyclerView.setVisibility(View.GONE);
-        loadingLayout.setVisibility(View.VISIBLE);
+        viewModel.getMoviesByTitle(searchText, page).observe(this, responseWrapper -> {
+            switch (responseWrapper.getStatus()) {
+                case ERROR:
+                    Log.i(TAG, "ERROR: "+responseWrapper.getErrorMessage());
 
-        // get data
-        viewModel.getMoviesByTitle(searchText, page).observe(this, movies -> {
-            //TODO handle state
+                    errorMessage.setText(responseWrapper.getErrorMessage());
 
-            adapter.setList(movies);
+                    errorMessage.setVisibility(View.VISIBLE);
+                    emptyLayout.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.GONE);
+                    loadingLayout.setVisibility(View.GONE);
 
-            // if recyclerView is empty show emptyLayout
-            if (adapter.getItemCount() == 0) {
-                emptyLayout.setVisibility(View.VISIBLE);
-                recyclerView.setVisibility(View.GONE);
-                loadingLayout.setVisibility(View.GONE);
-            } else {
-                emptyLayout.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
-                loadingLayout.setVisibility(View.GONE);
+                    break;
+                case CREATE:
+                case SUCCESS:
+                    Log.i(TAG, "CREATE||SUCCESS: "+responseWrapper.getData());
+
+                    adapter.setList(responseWrapper.getData());
+
+                    // if recyclerView is empty show emptyLayout
+                    if (adapter.getItemCount() == 0) {
+                        errorMessage.setVisibility(View.GONE);
+                        emptyLayout.setVisibility(View.VISIBLE);
+                        recyclerView.setVisibility(View.GONE);
+                        loadingLayout.setVisibility(View.GONE);
+                    } else {
+                        errorMessage.setVisibility(View.GONE);
+                        emptyLayout.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
+                        loadingLayout.setVisibility(View.GONE);
+                    }
+
+                    break;
+                case LOADING:
+                    Log.i(TAG, "LOADING: "+responseWrapper.getStatus());
+
+                    errorMessage.setVisibility(View.GONE);
+                    emptyLayout.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.GONE);
+                    loadingLayout.setVisibility(View.VISIBLE);
+
+                    break;
+                default:
+                    Log.i(TAG, "*********: "+responseWrapper.getStatus());
+
+                    break;
             }
         });
     }

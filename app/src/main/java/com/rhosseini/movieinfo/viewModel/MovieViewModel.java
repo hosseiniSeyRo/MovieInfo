@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData;
 
 import com.rhosseini.movieinfo.model.database.entity.Movie;
 import com.rhosseini.movieinfo.model.repository.MovieRepository;
+import com.rhosseini.movieinfo.model.webServise.responseModel.ResponseWrapper;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class MovieViewModel extends AndroidViewModel {
         repository = MovieRepository.getInstance(application);
     }
 
-    public LiveData<List<Movie>> getMoviesByTitle(String searchText, Integer page) {
+    public LiveData<ResponseWrapper<List<Movie>>> getMoviesByTitle(String searchText, Integer page) {
         return repository.getMoviesByTitle(searchText, page);
     }
 }
