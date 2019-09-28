@@ -36,7 +36,7 @@ public class DetailActivity extends AppCompatActivity {
         String imdbId = getIntent().getStringExtra("imdbId");
 
         /* get movie detail */
-        getMovieById(imdbId);
+//        getMovieById(imdbId);
     }
 
     /* bind views*/
@@ -52,21 +52,21 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     /* get movie detail */
-    private void getMovieById(String imdbId) {
-        viewModel.getMovieById(imdbId).observe(this, currentMovie -> {
-            // set data in views
-            Picasso.with(this)
-                    .load(currentMovie.getPoster())
-                    .placeholder(R.drawable.place_holder)
-                    .error(R.drawable.error_image_loading)
-                    .into(poster);
-            title.setText(currentMovie.getTitle());
-            year.setText(currentMovie.getYear());
-            director.setText(currentMovie.getDirector());
-            writer.setText(currentMovie.getWriter());
-            actors.setText(currentMovie.getActors());
-            language.setText(currentMovie.getLanguage());
-            country.setText(currentMovie.getCountry());
-        });
-    }
+//    private void getMovieById(String imdbId) {
+//        viewModel.getMovieById(imdbId).observe(this, currentMovie -> {
+//            // set data in views
+//            Picasso.with(this)
+//                    .load(currentMovie.getPoster())
+//                    .placeholder(R.drawable.place_holder)
+//                    .error(R.drawable.error_image_loading)
+//                    .into(poster);
+//            title.setText(currentMovie.getTitle());
+//            year.setText(currentMovie.getYear());
+//            director.setText(currentMovie.getDirector());
+//            writer.setText(currentMovie.getWriter());
+//            actors.setText(currentMovie.getActors());
+//            language.setText(currentMovie.getLanguage());
+//            country.setText(currentMovie.getCountry());
+//        });
+//    }
 }

@@ -13,8 +13,7 @@ public class Movie {
     private String imdbId;
     private String title;
     private String year;
-    private String runTime;
-    private String genre;
+    private String genre = null;
     private String director;
     private String writer;
     private String actors;
@@ -30,6 +29,20 @@ public class Movie {
         this.imdbId = imdbId;
         this.title = title;
         this.year = year;
+        this.poster = poster;
+    }
+
+    @Ignore
+    public Movie(@NonNull String imdbId, String title, String year, String genre, String director, String writer, String actors, String language, String country, String poster) {
+        this.imdbId = imdbId;
+        this.title = title;
+        this.year = year;
+        this.genre = genre;
+        this.director = director;
+        this.writer = writer;
+        this.actors = actors;
+        this.language = language;
+        this.country = country;
         this.poster = poster;
     }
 
@@ -55,14 +68,6 @@ public class Movie {
 
     public void setYear(String year) {
         this.year = year;
-    }
-
-    public String getRunTime() {
-        return runTime;
-    }
-
-    public void setRunTime(String runTime) {
-        this.runTime = runTime;
     }
 
     public String getDirector() {

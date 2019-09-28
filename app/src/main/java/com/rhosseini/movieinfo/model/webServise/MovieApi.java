@@ -10,8 +10,8 @@ import retrofit2.http.Query;
 public interface MovieApi {
 
     @GET("?apikey=40970e78")
-    Call<MovieSearchResponse> getMoviesBySearch(
-            @Query("s") String searchText,
+    Call<MovieSearchResponse> getMoviesByTitle(
+            @Query("s") String title,
             @Query("p") Integer page);
 
     @GET("?apikey=40970e78")
