@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.MediatorLiveData;
 
 import com.rhosseini.movieinfo.model.database.MovieDatabase;
 import com.rhosseini.movieinfo.model.database.dao.MovieDao;
@@ -14,7 +14,7 @@ import com.rhosseini.movieinfo.model.webServise.MovieApi;
 import com.rhosseini.movieinfo.model.webServise.RetrofitClient;
 import com.rhosseini.movieinfo.model.webServise.responseModel.MovieSearchResponse.MovieInSearch;
 import com.rhosseini.movieinfo.model.webServise.responseModel.MovieSearchResponse;
-import com.rhosseini.movieinfo.model.webServise.responseModel.ResponseWrapper;
+import com.rhosseini.movieinfo.model.webServise.responseModel.Resource;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ public class MovieRepository {
     private static MovieRepository movieRepository;
     private MovieDao movieDao;
     private MovieApi movieApi;
-    private LiveData<List<Movie>> allMovies;
+    public MediatorLiveData<Resource<List<Movie>>> responseWrapper = new MediatorLiveData<>();
 
 
     public static MovieRepository getInstance(Application app) {
@@ -45,55 +45,56 @@ public class MovieRepository {
     }
 
     /* get all Movies */
-    public LiveData<ResponseWrapper<List<Movie>>> getMoviesByTitle(String title, Integer page) {
-        allMovies = movieDao.getMoviesByTitle(title);
+    public void getMoviesByTitle(String title, Integer page) {
 
-        MutableLiveData<ResponseWrapper<List<Movie>>> responseWrapper = new MutableLiveData<>();
-        responseWrapper.setValue(new ResponseWrapper(ResponseWrapper.Status.CREATE, allMovies, null ,null));
+        LiveData<List<Movie>> allMovies = movieDao.getAllMovies();
+        responseWrapper.addSource(allMovies, movies -> {
+            responseWrapper.removeSource(allMovies);
+            responseWrapper.setValue(Resource.loading(movies));
 
-        //TODO Loading status
-        responseWrapper.setValue(ResponseWrapper.loading());
 
-        // fetch data from server
-        movieApi.getMoviesByTitle(title, page).enqueue(new Callback<MovieSearchResponse>() {
-            @Override
-            public void onResponse(Call<MovieSearchResponse> call, Response<MovieSearchResponse> response) {
-                if (response.isSuccessful()) {
-                    //TODO Success status
-                    responseWrapper.setValue(ResponseWrapper.success(convertResponseMovieToDBMovie(response.body().getMovieList())));
+            // fetch data from server
+            movieApi.getMoviesByTitle(title, page).enqueue(new Callback<MovieSearchResponse>() {
+                @Override
+                public void onResponse(Call<MovieSearchResponse> call, Response<MovieSearchResponse> response) {
+                    if (response.isSuccessful()) {
+                        List<Movie> convertedList = convertResponseMovieToDBMovie(response.body().getMovieList());
 
-                    // save data in db
-                    saveMoviesInDb(response);
-                } else {
-                    //TODO ERROR status
-                    responseWrapper.setValue(ResponseWrapper.error(response.code(), response.message()));
+                        //TODO Success status
+                        responseWrapper.setValue(Resource.success(convertedList));
 
-                    Log.e(TAG, response.code() + " " + response.message());
+                        // save data in db
+                        saveMoviesInDb(convertedList);
+                    } else {
+                        //TODO ERROR status
+                        responseWrapper.setValue(Resource.error(response.message(), movies));
+
+                        Log.e(TAG, response.code() + " " + response.message());
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<MovieSearchResponse> call, Throwable t) {
-                //TODO ERROR status
-                responseWrapper.setValue(ResponseWrapper.error(null, t.getMessage()));
-
-                Log.e(TAG, t.getMessage() != null ? t.getMessage() : "Something went wrong");
-            }
+                @Override
+                public void onFailure(Call<MovieSearchResponse> call, Throwable t) {
+                    //TODO ERROR status
+                    responseWrapper.setValue(Resource.error(t.getMessage(), movies));
+                    Log.e(TAG, t.getMessage() != null ? t.getMessage() : "Something went wrong");
+                }
+            });
         });
-
-        return responseWrapper;
     }
 
     // save server response in database
-    private void saveMoviesInDb(Response<MovieSearchResponse> response) {
-        if (response.body().getMovieList() != null) {
-            // convert server response to database entity and insert in db
-            insertMovies(convertResponseMovieToDBMovie(response.body().getMovieList()));
+    private void saveMoviesInDb(List<Movie> movieList) {
+        if (movieList != null) {
+            insertMovies(movieList);
         }
     }
 
     // convert server response to database entity
     private List<Movie> convertResponseMovieToDBMovie(List<MovieInSearch> movieListInSearch) {
+        if (movieListInSearch == null || movieListInSearch.size() == 0)
+            return null;
+
         List<Movie> movieList = new ArrayList<>();
         for (MovieInSearch currentMovie : movieListInSearch) {
             movieList.add(new Movie(currentMovie.getImdbID(), currentMovie.getTitle(), currentMovie.getYear(), currentMovie.getPoster()));
@@ -104,7 +105,8 @@ public class MovieRepository {
 
     // insert movies in db
     private void insertMovies(List<Movie> movieList) {
-        new InsertMoviesAsyncTask(movieDao).execute((ArrayList<Movie>) movieList);
+        if (movieList != null)
+            new InsertMoviesAsyncTask(movieDao).execute((ArrayList<Movie>) movieList);
     }
 
 
