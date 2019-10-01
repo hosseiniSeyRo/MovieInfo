@@ -5,9 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.rhosseini.movieinfo.R;
@@ -17,69 +19,159 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecyclerViewAdapter.MyViewHolder> {
+public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecyclerViewAdapter.CustomViewHolder> {
+
+    private Context mContext;
+    private List<Movie> dataList = new ArrayList<>();
+    private OnItemClickedListener onItemClickedListener;
+
+    // for load more
+    private final int VIEW_TYPE_ITEM = 0;
+    private final int VIEW_TYPE_LOADING = 1;
+    private OnLoadMoreListener onLoadMoreListener;
+    private boolean isLoading;
+    private int visibleThreshold = 2;
+    private int lastVisibleItem, totalItemCount, visibleItemCount;
 
 
-    Context mContext;
-    List<Movie> movieList = new ArrayList<>();
-    private OnItemClicked listener;
+    public void setOnLoadMoreListener(OnLoadMoreListener onLoadMoreListener) {
+        this.onLoadMoreListener = onLoadMoreListener;
+    }
 
+    public interface OnLoadMoreListener {
+        void onLoadMore();
+    }
 
-    public MovieRecyclerViewAdapter(Context mContext, OnItemClicked listener) {
+    public void setOnItemClickedListener(OnItemClickedListener onItemClickedListener) {
+        this.onItemClickedListener = onItemClickedListener;
+    }
+
+    public interface OnItemClickedListener {
+        void onItemClick(int position);
+    }
+
+    public MovieRecyclerViewAdapter(Context mContext, RecyclerView recyclerView) {
         this.mContext = mContext;
-        this.listener = listener;
+
+        // load more
+        final LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+//                visibleItemCount = recyclerView.getChildCount();
+                totalItemCount = layoutManager.getItemCount();
+                lastVisibleItem = layoutManager.findLastVisibleItemPosition();
+
+//                if (!isLoading && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
+                if (!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
+                    if (onLoadMoreListener != null) {
+                        onLoadMoreListener.onLoadMore();
+                    }
+                    isLoading = true;
+                }
+            }
+        });
     }
 
     @NonNull
     @Override
-    public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(mContext).inflate(R.layout.list_item, parent, false);
-        return new MyViewHolder(itemView);
+    public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == VIEW_TYPE_ITEM) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.row_list, parent, false);
+            return new DataViewHolder(view);
+        } else if (viewType == VIEW_TYPE_LOADING) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.row_progress, parent, false);
+            return new LoadingViewHolder(view);
+        }
+        return null;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        Movie currentMovie = movieList.get(position);
+    public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
+        if (holder instanceof DataViewHolder) {
+            Movie currentMovie = dataList.get(position);
 
-        Picasso.with(mContext)
-                .load(currentMovie.getPoster())
-                .centerCrop()
-                .resizeDimen(R.dimen.posterWidth, R.dimen.posterHeight)
-                .placeholder(R.drawable.place_holder)
-                .error(R.drawable.error_image_loading)
-                .into(holder.poster);
-        holder.title.setText(currentMovie.getTitle());
-        holder.year.setText(currentMovie.getYear());
+            DataViewHolder dataViewHolder = (DataViewHolder) holder;
 
-        holder.container.setOnClickListener(v -> {
-            listener.onItemClick(position);
-        });
+            Picasso.with(mContext)
+                    .load(currentMovie.getPoster())
+                    .centerCrop()
+                    .resizeDimen(R.dimen.posterWidth, R.dimen.posterHeight)
+                    .placeholder(R.drawable.place_holder)
+                    .error(R.drawable.error_image_loading)
+                    .into(dataViewHolder.poster);
+            dataViewHolder.title.setText(currentMovie.getTitle());
+            dataViewHolder.year.setText(currentMovie.getYear());
+
+            dataViewHolder.container.setOnClickListener(v -> {
+                onItemClickedListener.onItemClick(position);
+            });
+        } else {
+            //Do whatever you want. Or nothing !!
+            LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
+
+            loadingViewHolder.progressBar.setIndeterminate(true);
+        }
     }
 
     @Override
     public int getItemCount() {
-        if (movieList != null)
-            return movieList.size();
-        return 0;
+        return dataList == null ? 0 : dataList.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return dataList.get(position) == null ? VIEW_TYPE_LOADING : VIEW_TYPE_ITEM;
     }
 
     public Movie getItem(int position) {
-        return movieList.get(position);
+        return dataList.get(position);
     }
 
     public void setList(List<Movie> movieList) {
-        this.movieList = movieList;
-        notifyDataSetChanged();
+        if (movieList != null) {
+            this.dataList.addAll(movieList);
+            notifyDataSetChanged();
+        }
     }
 
-    class MyViewHolder extends RecyclerView.ViewHolder {
+    public void addNullData() {
+        dataList.add(null);
+        notifyItemInserted(dataList.size()-1);
+    }
+
+    public void removeNull() {
+        if (isLoading) {
+            dataList.remove(dataList.size() - 1);
+            notifyItemRemoved(dataList.size());
+        }
+    }
+
+    public void setLoaded() {
+        isLoading = false;
+    }
+
+    public boolean getLoading() {
+        return isLoading;
+    }
+
+    public class CustomViewHolder extends RecyclerView.ViewHolder {
+
+        public CustomViewHolder(@NonNull View itemView) {
+            super(itemView);
+        }
+    }
+
+    public class DataViewHolder extends CustomViewHolder {
 
         ImageView poster;
         TextView title;
         TextView year;
         View container;
 
-        public MyViewHolder(@NonNull View itemView) {
+        public DataViewHolder(@NonNull View itemView) {
             super(itemView);
 
             poster = itemView.findViewById(R.id.poster);
@@ -89,7 +181,14 @@ public class MovieRecyclerViewAdapter extends RecyclerView.Adapter<MovieRecycler
         }
     }
 
-    public interface OnItemClicked {
-        void onItemClick(int position);
+    public class LoadingViewHolder extends CustomViewHolder {
+
+        public ProgressBar progressBar;
+
+        public LoadingViewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            progressBar = itemView.findViewById(R.id.progressbar);
+        }
     }
 }

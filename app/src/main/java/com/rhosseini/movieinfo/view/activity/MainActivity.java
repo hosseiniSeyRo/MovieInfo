@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -24,6 +25,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     View emptyLayout, loadingLayout, errorLayout;
     TextView errorMessage;
     Button tryAgain;
+    int currentPage = 1;
+    String searchText = "iran";
+    boolean isEndOfList = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         /* init viewModel */
         viewModel = ViewModelProviders.of(this).get(MovieViewModel.class);
+
+        observeMovieList();
 
         /* bind views*/
         bindViews();
@@ -43,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         configureRecyclerView();
 
         /* get All Movies by Specific word in title */
-        getMoviesByTitle("iran", 1);
+        getMoviesByTitle(searchText, currentPage);
     }
 
     /* bind views*/
@@ -81,27 +87,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /* configure RecyclerView */
     private void configureRecyclerView() {
-        // set recyclerView setup
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.VERTICAL, false);
+        recyclerView.setLayoutManager(mLayoutManager);
 
-        // set recyclerView adapter
-        adapter = new MovieRecyclerViewAdapter(this, position -> {
+        adapter = new MovieRecyclerViewAdapter(this, recyclerView);
+        recyclerView.setAdapter(adapter);
+
+        // set RecyclerView on item click listener
+        adapter.setOnItemClickedListener(position -> {
             //TODO
 //            Intent intent = new Intent(this, DetailActivity.class);
 //            intent.putExtra("imdbId", adapter.getItem(position).getImdbId());
 //            startActivity(intent);
         });
-        recyclerView.setAdapter(adapter);
+
+        //set load more listener for the RecyclerView adapter
+        adapter.setOnLoadMoreListener(() -> {
+            //TODO
+            if (!isEndOfList) {
+                //add progress item
+                adapter.addNullData();
+                new Handler().postDelayed(() -> {
+                    getMoviesByTitle(searchText, ++currentPage);
+//                adapter.removeNull();
+//                adapter.setLoaded();
+                }, 2000);
+            }
+        });
     }
 
-    /* get Movies */
-    private void getMoviesByTitle(String searchText, Integer page) {
-        viewModel.getMoviesByTitle(searchText, page).observe(this, responseWrapper -> {
+    private void observeMovieList() {
+        viewModel.movieList.observe(this, responseWrapper -> {
             switch (responseWrapper.getStatus()) {
                 case ERROR:
-                    Log.i(TAG, "ERROR: "+responseWrapper.getErrorMessage());
+                    Log.i(TAG, "ERROR: " + responseWrapper.getMessage());
 
-                    errorMessage.setText(responseWrapper.getErrorMessage());
+                    errorMessage.setText(responseWrapper.getMessage());
 
                     errorMessage.setVisibility(View.VISIBLE);
                     emptyLayout.setVisibility(View.GONE);
@@ -109,11 +130,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     loadingLayout.setVisibility(View.GONE);
 
                     break;
-                case CREATE:
                 case SUCCESS:
-                    Log.i(TAG, "CREATE||SUCCESS: "+responseWrapper.getData());
+                    Log.i(TAG, "CREATE||SUCCESS: " + responseWrapper.getData());
 
+                    adapter.removeNull();
                     adapter.setList(responseWrapper.getData());
+                    adapter.setLoaded();
+                    if (responseWrapper.getData() == null) isEndOfList = true;
+
 
                     // if recyclerView is empty show emptyLayout
                     if (adapter.getItemCount() == 0) {
@@ -130,20 +154,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     break;
                 case LOADING:
-                    Log.i(TAG, "LOADING: "+responseWrapper.getStatus());
+                    Log.i(TAG, "LOADING: " + responseWrapper.getStatus());
 
-                    errorMessage.setVisibility(View.GONE);
-                    emptyLayout.setVisibility(View.GONE);
-                    recyclerView.setVisibility(View.GONE);
-                    loadingLayout.setVisibility(View.VISIBLE);
+                    adapter.setList(responseWrapper.getData());
+
+                    if (adapter.getItemCount() == 0) {
+                        errorMessage.setVisibility(View.GONE);
+                        emptyLayout.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.GONE);
+                        loadingLayout.setVisibility(View.VISIBLE);
+                    }
 
                     break;
                 default:
-                    Log.i(TAG, "*********: "+responseWrapper.getStatus());
+                    Log.i(TAG, "*********: " + responseWrapper.getStatus());
 
                     break;
             }
         });
     }
 
+    /* get Movies */
+    private void getMoviesByTitle(String searchText, Integer page) {
+        viewModel.getMoviesByTitle(searchText, page);
+    }
 }

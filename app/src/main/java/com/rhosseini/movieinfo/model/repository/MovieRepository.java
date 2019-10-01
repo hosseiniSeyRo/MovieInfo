@@ -47,10 +47,10 @@ public class MovieRepository {
     /* get all Movies */
     public void getMoviesByTitle(String title, Integer page) {
 
-        LiveData<List<Movie>> allMovies = movieDao.getAllMovies();
-        responseWrapper.addSource(allMovies, movies -> {
-            responseWrapper.removeSource(allMovies);
-            responseWrapper.setValue(Resource.loading(movies));
+//        LiveData<List<Movie>> allMovies = movieDao.getAllMovies();
+//        responseWrapper.addSource(allMovies, movies -> {
+//            responseWrapper.removeSource(allMovies);
+            responseWrapper.setValue(Resource.loading(null));
 
 
             // fetch data from server
@@ -67,7 +67,7 @@ public class MovieRepository {
                         saveMoviesInDb(convertedList);
                     } else {
                         //TODO ERROR status
-                        responseWrapper.setValue(Resource.error(response.message(), movies));
+                        responseWrapper.setValue(Resource.error(response.message(), null));
 
                         Log.e(TAG, response.code() + " " + response.message());
                     }
@@ -76,11 +76,11 @@ public class MovieRepository {
                 @Override
                 public void onFailure(Call<MovieSearchResponse> call, Throwable t) {
                     //TODO ERROR status
-                    responseWrapper.setValue(Resource.error(t.getMessage(), movies));
+                    responseWrapper.setValue(Resource.error(t.getMessage(), null));
                     Log.e(TAG, t.getMessage() != null ? t.getMessage() : "Something went wrong");
                 }
             });
-        });
+//        });
     }
 
     // save server response in database
